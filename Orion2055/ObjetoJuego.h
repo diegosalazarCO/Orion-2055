@@ -45,7 +45,7 @@ protected:
 	int columnasAnimacion;
 	int direccionAnimacion;
     
-	ALLEGRO_BITMAP *imagen;
+    ALLEGRO_BITMAP *imagen;
     
 public:
 	ObjetoJuego();

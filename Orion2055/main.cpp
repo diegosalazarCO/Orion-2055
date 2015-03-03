@@ -6,13 +6,29 @@
 //
 //
 
-#include "main.h"
-#include "Globales.h"
+#include <iostream>
+#include <list>
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_image.h>
 
-bool teclas[] = {false, false, false, false, false};
-enum TECLAS{ARRIBA, ABAJO, IZQ, DERECHA, SPACIO};
+
+#include "Globales.h"
+#include "ObjetoJuego.h"
+#include "Nave.h"
+
+using namespace std;
+
+bool teclas[5] = {false, false, false, false, false};
+enum TECLAS{ARRIBA, ABAJO, IZQ, DERECHA, ESPACIO};
 
 // variables globales
+Nave *nave;
+//list<ObjetoJuego *> objetos;
+//list<ObjetoJuego *>::iterator iterador;
+//list<ObjetoJuego *>::iterator iterador2;
 
 int main(int argc, char **argv)
 {
@@ -30,7 +46,8 @@ int main(int argc, char **argv)
 	//VARIABLES DE PROYECTO
 	//==============================================
 	
-    
+    nave = new Nave();
+    ALLEGRO_BITMAP *imagenNave = NULL;
     
 	//==============================================
 	//VARIABLES DE ALLEGRO
@@ -43,14 +60,16 @@ int main(int argc, char **argv)
 	//==============================================
 	//FUNCIONES INIT ALLEGRO
 	//==============================================
-	if(!al_init())										//initialize Allegro
+	if(!al_init()){										//initialize Allegro
 		return -1;
+    }
     
 	display = al_create_display(ANCHO, ALTO);			//create our display object
-    
-	if(!display)										//test display object
+    al_set_window_title(display, "Orion 2055");
+	if(!display){										//test display object
 		return -1;
-    
+    }
+    cout << "\n" << display;
 	//==============================================
 	// INSTALAR ADDONS
 	//==============================================
@@ -64,9 +83,16 @@ int main(int argc, char **argv)
 	//==============================================
 	//PROJECT INIT
 	//==============================================
-
     
-	//srand(time(NULL));
+    font18 = al_load_font("Vanadine Regular.ttf", 18, 0);
+    imagenNave = al_load_bitmap("spaceship_by_arboris.png");
+    al_convert_mask_to_alpha(imagenNave, al_map_rgb(255, 0, 255));
+    cout << "\n" << imagenNave ;
+    nave -> Iniciar(imagenNave);
+    
+    //objetos.push_back(nave);
+    
+	srand(time(NULL));
 	//==============================================
 	// TIMER E INICIAR
 	//==============================================
@@ -78,8 +104,10 @@ int main(int argc, char **argv)
     
 	al_start_timer(timer);
 	gameTime = al_current_time();
+    cout << "\n Game time: " << gameTime;
 	while(!terminado)
 	{
+        cout << "\nhi";
 		ALLEGRO_EVENT ev;
 		al_wait_for_event(colaEventos, &ev);
         
@@ -106,7 +134,7 @@ int main(int argc, char **argv)
                     teclas[ABAJO] = true;
                     break;
                 case ALLEGRO_KEY_SPACE:
-                    teclas[SPACIO] = true;
+                    teclas[ESPACIO] = true;
                     break;
 			}
 		}
@@ -130,7 +158,7 @@ int main(int argc, char **argv)
                     teclas[ABAJO] = false;
                     break;
                 case ALLEGRO_KEY_SPACE:
-                    teclas[SPACIO] = false;
+                    teclas[ESPACIO] = false;
                     break;
 			}
 		}
@@ -143,6 +171,8 @@ int main(int argc, char **argv)
             
 			//UPDATE FPS===========
 			frames++;
+            cout << "\nFrames:" << frames;
+            cout << "\nif.. " << al_current_time();
 			if(al_current_time() - gameTime >= 1)
 			{
 				gameTime = al_current_time();
@@ -150,21 +180,40 @@ int main(int argc, char **argv)
 				frames = 0;
 			}
 			//=====================
+            
+            if (teclas[ARRIBA]) {
+                nave -> Acelerar();
+            } else if (teclas[IZQ]){
+                nave -> RotarIZQ();
+            } else if (teclas[DERECHA]){
+                nave -> RotarDER();
+            }
+            // actualizar
+            nave -> Actualizar();
+            /*for (iterador = objetos.begin(); iterador != objetos.end(); ++iterador) {
+                cout << "\nObjetos:" << objetos.size();
+                cout << "\n\t:D itera";
+                (*iterador)-> Actualizar();
+            }*/
            
-        
+        }
 		//==============================================
 		// RENDERIZAR
 		//==============================================
 		if(render && al_is_event_queue_empty(colaEventos))
 		{
 			render = false;
-			//al_draw_textf(font18, al_map_rgb(255, 0, 255), 5, 5, 0, "FPS: %i", FPSjuego);	//display FPS on screen
+			al_draw_textf(font18, al_map_rgb(236, 240, 241), 5, 5, 0, "FPS: %i", FPSjuego);	//display FPS on screen
             
 			//BEGIN PROJECT RENDER================
+            /*for (iterador = objetos.begin(); iterador != objetos.end(); ++iterador) {
+                (*iterador)-> Renderizar();
+            }*/
+            //nave -> Renderizar();
             
 			//FLIP BUFFERS========================
 			al_flip_display();
-			al_clear_to_color(al_map_rgb(0,0,0));
+			al_clear_to_color(al_map_rgb(44, 62, 80));
 		}
 	}
     
@@ -172,13 +221,21 @@ int main(int argc, char **argv)
 	// DESTRUIR OBJETOS DE PROYECTO
 	//==============================================
 
+    /*for (iterador = objetos.begin(); iterador != objetos.end(); ++iterador) {
+        (*iterador)-> Destruir();
+        delete (*iterador);
+        iterador = objetos.erase(iterador);
+    }*/
+    nave -> Destruir();
     
+    al_destroy_bitmap(imagenNave);
     
 	// OBJETOS DE SHELL=================================
+    al_destroy_font(font18);
 	al_destroy_timer(timer);
 	al_destroy_event_queue(colaEventos);
 	al_destroy_display(display);
     
 	return 0;
+    
 }
-

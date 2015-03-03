@@ -9,14 +9,14 @@
 #ifndef __Orion_2055__Nave__
 #define __Orion_2055__Nave__
 
-#include "OjetoJuego.h"
+#include "ObjetoJuego.h"
 
-class Nave : public OjetoJuego
+class Nave: public ObjetoJuego
 {
     
 private:
     int vidas, puntaje;
-    int columnasAnimacion;
+    int filasAnimacion;
     
 public:
     Nave();
@@ -29,6 +29,8 @@ public:
     void Acelerar();
     void RotarIZQ();
     void RotarDER();
+    
+    void ReiniciarAnimacion(int posicion);
     
     int GetVidas() {return vidas;}
     int GetPuntaje() {return puntaje;}
